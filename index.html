@@ -1,125 +1,781 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NovaShop — Zamonaviy do‘kon</title>
+<title>Zombie Survival</title>
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#f5f6f8;color:#171717}
-header{background:#111827;color:white;padding:18px 7%;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
-.logo{font-size:25px;font-weight:800;color:#60a5fa}
-nav a{color:#fff;text-decoration:none;margin-left:25px}
-.hero{padding:80px 7%;background:linear-gradient(120deg,#111827,#2563eb);color:white}
-.hero h1{font-size:52px;max-width:650px;margin-bottom:20px}
-.hero p{font-size:19px;opacity:.9;margin-bottom:30px}
-.btn{display:inline-block;background:white;color:#2563eb;padding:14px 25px;border-radius:10px;text-decoration:none;font-weight:bold}
-.container{padding:50px 7%}
-.title{text-align:center;font-size:34px;margin-bottom:35px}
-.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:25px}
-.card{background:white;border-radius:18px;overflow:hidden;box-shadow:0 8px 25px #00000010;transition:.25s}
-.card:hover{transform:translateY(-6px)}
-.card img{width:100%;height:220px;object-fit:cover}
-.info{padding:20px}
-.info h3{margin-bottom:10px}
-.price{font-size:21px;font-weight:bold;color:#2563eb;margin:15px 0}
-.buy{width:100%;border:0;background:#2563eb;color:white;padding:13px;border-radius:9px;cursor:pointer;font-size:15px}
-footer{background:#111827;color:#aaa;text-align:center;padding:30px;margin-top:30px}
-#cart{position:fixed;right:25px;bottom:25px;background:#2563eb;color:white;padding:16px 20px;border-radius:50px;box-shadow:0 8px 25px #0004}
-@media(max-width:600px){
-.hero h1{font-size:37px}
-nav{display:none}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  overflow:hidden;
+  background:#050807;
+  font-family:Arial, sans-serif;
+  color:white;
+  user-select:none;
+}
+
+canvas{
+  display:block;
+  cursor:crosshair;
+}
+
+#hud{
+  position:fixed;
+  top:20px;
+  left:20px;
+  z-index:5;
+  pointer-events:none;
+}
+
+.panel{
+  background:rgba(5,10,8,.78);
+  border:1px solid rgba(100,255,130,.3);
+  backdrop-filter:blur(8px);
+  padding:14px 18px;
+  border-radius:12px;
+  box-shadow:0 0 25px rgba(0,255,80,.08);
+}
+
+#healthOuter{
+  width:220px;
+  height:15px;
+  background:#222;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:7px;
+}
+
+#health{
+  width:100%;
+  height:100%;
+  background:linear-gradient(90deg,#ff3030,#ff9b30);
+  transition:.15s;
+}
+
+.stat{
+  margin-top:8px;
+  color:#b8ffc4;
+  font-size:14px;
+}
+
+#crosshair{
+  position:fixed;
+  width:22px;
+  height:22px;
+  pointer-events:none;
+  z-index:10;
+  transform:translate(-50%,-50%);
+}
+
+#crosshair:before,
+#crosshair:after{
+  content:"";
+  position:absolute;
+  background:#fff;
+  box-shadow:0 0 7px #fff;
+}
+
+#crosshair:before{
+  width:2px;
+  height:22px;
+  left:10px;
+}
+
+#crosshair:after{
+  width:22px;
+  height:2px;
+  top:10px;
+}
+
+#startScreen,
+#gameOver{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:20;
+  background:
+    radial-gradient(circle at center,rgba(20,70,30,.25),rgba(0,0,0,.94));
+}
+
+.modal{
+  text-align:center;
+  padding:45px;
+  width:min(90%,500px);
+  background:rgba(7,12,9,.92);
+  border:1px solid #3cff69;
+  border-radius:20px;
+  box-shadow:
+    0 0 40px rgba(0,255,80,.12),
+    inset 0 0 40px rgba(0,255,80,.03);
+}
+
+h1{
+  font-size:48px;
+  letter-spacing:4px;
+  color:#7dff96;
+  text-shadow:0 0 20px #21ff55;
+}
+
+.subtitle{
+  color:#aaa;
+  margin:15px 0 30px;
+  line-height:1.6;
+}
+
+button{
+  border:0;
+  padding:15px 35px;
+  border-radius:10px;
+  background:#31e85c;
+  color:#031006;
+  font-weight:bold;
+  font-size:16px;
+  cursor:pointer;
+  box-shadow:0 0 20px rgba(49,232,92,.3);
+}
+
+button:hover{
+  background:#70ff8d;
+  transform:scale(1.03);
+}
+
+#gameOver{
+  display:none;
+}
+
+.bigScore{
+  font-size:25px;
+  margin:20px 0;
+  color:#ddd;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-<div class="logo">NovaShop</div>
-<nav>
-<a href="#">Bosh sahifa</a>
-<a href="#products">Mahsulotlar</a>
-<a href="#about">Biz haqimizda</a>
-</nav>
-</header>
+<canvas id="game"></canvas>
 
-<section class="hero">
-<h1>Texnologiyani yangi darajada his qiling.</h1>
-<p>Zamonaviy gadjetlar, sifatli mahsulotlar va tez yetkazib berish — barchasi bitta joyda.</p>
-<a class="btn" href="#products">Mahsulotlarni ko‘rish</a>
-</section>
+<div id="hud">
+  <div class="panel">
+    <b>☣ ZOMBIE SURVIVAL</b>
 
-<section class="container" id="products">
-<h2 class="title">Mashhur mahsulotlar</h2>
+    <div class="stat">
+      HP
+      <div id="healthOuter">
+        <div id="health"></div>
+      </div>
+    </div>
 
-<div class="products">
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80">
-<div class="info">
-<h3>Premium Headphones</h3>
-<p>Simsiz, yuqori sifatli ovoz va shovqinni kamaytirish.</p>
-<div class="price">$129</div>
-<button class="buy" onclick="addCart('Premium Headphones')">Savatga qo‘shish</button>
-</div>
+    <div class="stat">☠ Zombilar: <span id="zombies">0</span></div>
+    <div class="stat">★ Ball: <span id="score">0</span></div>
+    <div class="stat">🌊 Wave: <span id="wave">1</span></div>
+  </div>
 </div>
 
-<div class="card">
-<img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80">
-<div class="info">
-<h3>Smart Watch</h3>
-<p>Sport, sog‘liq va kundalik hayot uchun aqlli soat.</p>
-<div class="price">$199</div>
-<button class="buy" onclick="addCart('Smart Watch')">Savatga qo‘shish</button>
-</div>
+<div id="crosshair"></div>
+
+<div id="startScreen">
+  <div class="modal">
+    <h1>OUTBREAK</h1>
+
+    <div class="subtitle">
+      Shahar tashlandiq.<br>
+      Zombilar esa hali ham yuribdi.<br><br>
+      <b>WASD</b> — yurish<br>
+      <b>Sichqoncha</b> — nishonga olish va otish
+    </div>
+
+    <button onclick="startGame()">O‘YINNI BOSHLASH</button>
+  </div>
 </div>
 
-<div class="card">
-<img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80">
-<div class="info">
-<h3>Smartphone</h3>
-<p>Yuqori unumdorlik va professional kamera.</p>
-<div class="price">$799</div>
-<button class="buy" onclick="addCart('Smartphone')">Savatga qo‘shish</button>
+<div id="gameOver">
+  <div class="modal">
+    <h1>GAME OVER</h1>
+    <div class="bigScore">
+      Ball: <b id="finalScore">0</b>
+    </div>
+    <button onclick="location.reload()">QAYTA O‘YNASH</button>
+  </div>
 </div>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80">
-<div class="info">
-<h3>Modern Laptop</h3>
-<p>O‘qish, ish va ijod uchun kuchli noutbuk.</p>
-<div class="price">$999</div>
-<button class="buy" onclick="addCart('Modern Laptop')">Savatga qo‘shish</button>
-</div>
-</div>
-
-</div>
-</section>
-
-<section class="container" id="about">
-<h2 class="title">Nega NovaShop?</h2>
-<p style="text-align:center;max-width:700px;margin:auto;line-height:1.8">
-Biz zamonaviy texnologiyalarni qulay narx va ishonchli xizmat bilan birlashtiramiz.
-Buyurtmalar tez yetkaziladi va xaridorlarimiz uchun sifat birinchi o‘rinda turadi.
-</p>
-</section>
-
-<div id="cart">🛒 Savat: <span id="count">0</span></div>
-
-<footer>
-© 2026 NovaShop. Barcha huquqlar himoyalangan.
-</footer>
 
 <script>
-let count = 0;
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-function addCart(product){
-  count++;
-  document.getElementById("count").textContent = count;
-  alert(product + " savatga qo‘shildi!");
+let W, H;
+
+function resize(){
+  W = canvas.width = innerWidth;
+  H = canvas.height = innerHeight;
 }
+
+addEventListener("resize", resize);
+resize();
+
+/* ---------------- GAME ---------------- */
+
+let running = false;
+let score = 0;
+let wave = 1;
+let health = 100;
+
+let player = {
+  x: W/2,
+  y: H/2,
+  r: 17,
+  speed: 4
+};
+
+let keys = {};
+let mouse = {
+  x: W/2,
+  y: H/2,
+  down:false
+};
+
+let zombies = [];
+let bullets = [];
+let particles = [];
+let buildings = [];
+let lastSpawn = 0;
+let waveTimer = 0;
+
+/* ---------------- INPUT ---------------- */
+
+addEventListener("keydown", e=>{
+  keys[e.key.toLowerCase()] = true;
+});
+
+addEventListener("keyup", e=>{
+  keys[e.key.toLowerCase()] = false;
+});
+
+addEventListener("mousemove", e=>{
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+
+  const cross = document.getElementById("crosshair");
+  cross.style.left = mouse.x+"px";
+  cross.style.top = mouse.y+"px";
+});
+
+addEventListener("mousedown", ()=>{
+  mouse.down = true;
+});
+
+addEventListener("mouseup", ()=>{
+  mouse.down = false;
+});
+
+/* ---------------- START ---------------- */
+
+function startGame(){
+  document.getElementById("startScreen").style.display="none";
+
+  running = true;
+
+  createCity();
+
+  requestAnimationFrame(loop);
+}
+
+/* ---------------- CITY ---------------- */
+
+function createCity(){
+
+  buildings = [];
+
+  for(let i=0;i<25;i++){
+
+    let w = 80 + Math.random()*150;
+    let h = 60 + Math.random()*120;
+
+    let x = Math.random()*W;
+    let y = Math.random()*H;
+
+    buildings.push({
+      x,y,w,h
+    });
+  }
+}
+
+/* ---------------- SPAWN ZOMBIE ---------------- */
+
+function spawnZombie(){
+
+  let side = Math.floor(Math.random()*4);
+
+  let x,y;
+
+  if(side===0){
+    x=-40;
+    y=Math.random()*H;
+  }
+
+  if(side===1){
+    x=W+40;
+    y=Math.random()*H;
+  }
+
+  if(side===2){
+    x=Math.random()*W;
+    y=-40;
+  }
+
+  if(side===3){
+    x=Math.random()*W;
+    y=H+40;
+  }
+
+  zombies.push({
+    x,
+    y,
+    r:17 + Math.random()*6,
+    speed:0.55 + wave*.07 + Math.random()*.35,
+    hp:2 + Math.floor(wave/3),
+    attack:0
+  });
+}
+
+/* ---------------- SHOOT ---------------- */
+
+let lastShot = 0;
+
+function shoot(){
+
+  const now = performance.now();
+
+  if(now-lastShot < 170) return;
+
+  lastShot = now;
+
+  let dx = mouse.x-player.x;
+  let dy = mouse.y-player.y;
+
+  let len = Math.hypot(dx,dy);
+
+  dx/=len;
+  dy/=len;
+
+  bullets.push({
+    x:player.x + dx*22,
+    y:player.y + dy*22,
+    vx:dx*12,
+    vy:dy*12,
+    life:70
+  });
+
+  for(let i=0;i<4;i++){
+    particles.push({
+      x:player.x+dx*25,
+      y:player.y+dy*25,
+      vx:dx*(2+Math.random()*3)+(Math.random()-.5),
+      vy:dy*(2+Math.random()*3)+(Math.random()-.5),
+      life:15,
+      color:"#ffd65c"
+    });
+  }
+}
+
+/* ---------------- PARTICLES ---------------- */
+
+function particle(x,y,color){
+
+  for(let i=0;i<8;i++){
+
+    particles.push({
+      x,
+      y,
+      vx:(Math.random()-.5)*5,
+      vy:(Math.random()-.5)*5,
+      life:25+Math.random()*20,
+      color
+    });
+
+  }
+}
+
+/* ---------------- UPDATE ---------------- */
+
+function update(){
+
+  /* PLAYER */
+
+  let dx=0,dy=0;
+
+  if(keys["w"] || keys["arrowup"]) dy--;
+  if(keys["s"] || keys["arrowdown"]) dy++;
+  if(keys["a"] || keys["arrowleft"]) dx--;
+  if(keys["d"] || keys["arrowright"]) dx++;
+
+  if(dx || dy){
+
+    let len=Math.hypot(dx,dy);
+
+    dx/=len;
+    dy/=len;
+
+    player.x += dx*player.speed;
+    player.y += dy*player.speed;
+  }
+
+  player.x=Math.max(20,Math.min(W-20,player.x));
+  player.y=Math.max(20,Math.min(H-20,player.y));
+
+  if(mouse.down) shoot();
+
+  /* SPAWN */
+
+  let now=performance.now();
+
+  let spawnDelay=Math.max(350,1200-wave*70);
+
+  if(now-lastSpawn>spawnDelay){
+
+    spawnZombie();
+    lastSpawn=now;
+  }
+
+  /* WAVE */
+
+  waveTimer++;
+
+  if(waveTimer>900){
+
+    wave++;
+    waveTimer=0;
+
+    for(let i=0;i<3;i++) spawnZombie();
+  }
+
+  /* BULLETS */
+
+  for(let i=bullets.length-1;i>=0;i--){
+
+    let b=bullets[i];
+
+    b.x+=b.vx;
+    b.y+=b.vy;
+    b.life--;
+
+    if(b.life<=0){
+      bullets.splice(i,1);
+      continue;
+    }
+
+    for(let j=zombies.length-1;j>=0;j--){
+
+      let z=zombies[j];
+
+      let dist=Math.hypot(b.x-z.x,b.y-z.y);
+
+      if(dist<z.r+5){
+
+        z.hp--;
+
+        particle(b.x,b.y,"#ff4a4a");
+
+        bullets.splice(i,1);
+
+        if(z.hp<=0){
+
+          score+=10;
+
+          particle(z.x,z.y,"#8cff8c");
+
+          zombies.splice(j,1);
+        }
+
+        break;
+      }
+    }
+  }
+
+  /* ZOMBIES */
+
+  zombies.forEach(z=>{
+
+    let dx=player.x-z.x;
+    let dy=player.y-z.y;
+
+    let dist=Math.hypot(dx,dy);
+
+    if(dist>30){
+
+      dx/=dist;
+      dy/=dist;
+
+      z.x+=dx*z.speed;
+      z.y+=dy*z.speed;
+
+    }else{
+
+      if(now-z.attack>650){
+
+        health-=7;
+        z.attack=now;
+
+        particle(player.x,player.y,"#ff3030");
+
+        if(health<=0){
+          endGame();
+        }
+      }
+    }
+  });
+
+  /* PARTICLES */
+
+  for(let i=particles.length-1;i>=0;i--){
+
+    let p=particles[i];
+
+    p.x+=p.vx;
+    p.y+=p.vy;
+    p.vx*=.96;
+    p.vy*=.96;
+    p.life--;
+
+    if(p.life<=0) particles.splice(i,1);
+  }
+
+  /* HUD */
+
+  document.getElementById("health").style.width=
+    Math.max(0,health)+"%";
+
+  document.getElementById("zombies").textContent=
+    zombies.length;
+
+  document.getElementById("score").textContent=
+    score;
+
+  document.getElementById("wave").textContent=
+    wave;
+}
+
+/* ---------------- DRAW ---------------- */
+
+function draw(){
+
+  /* BACKGROUND */
+
+  ctx.fillStyle="#07100b";
+  ctx.fillRect(0,0,W,H);
+
+  /* GRID / ROAD */
+
+  ctx.strokeStyle="rgba(70,150,80,.10)";
+  ctx.lineWidth=1;
+
+  let grid=55;
+
+  for(let x=0;x<W;x+=grid){
+
+    ctx.beginPath();
+    ctx.moveTo(x,0);
+    ctx.lineTo(x,H);
+    ctx.stroke();
+  }
+
+  for(let y=0;y<H;y+=grid){
+
+    ctx.beginPath();
+    ctx.moveTo(0,y);
+    ctx.lineTo(W,y);
+    ctx.stroke();
+  }
+
+  /* BUILDINGS */
+
+  buildings.forEach(b=>{
+
+    ctx.fillStyle="#111914";
+    ctx.fillRect(b.x,b.y,b.w,b.h);
+
+    ctx.strokeStyle="#263c2b";
+    ctx.strokeRect(b.x,b.y,b.w,b.h);
+
+    ctx.fillStyle="#24472d";
+
+    for(let x=b.x+12;x<b.x+b.w-8;x+=25){
+
+      for(let y=b.y+12;y<b.y+b.h-8;y+=25){
+
+        if(Math.random()<.025){
+
+          ctx.fillStyle="#b4ff72";
+          ctx.fillRect(x,y,8,10);
+
+        }else{
+
+          ctx.fillStyle="#17241a";
+          ctx.fillRect(x,y,8,10);
+        }
+      }
+    }
+  });
+
+  /* BULLETS */
+
+  bullets.forEach(b=>{
+
+    ctx.fillStyle="#ffe67b";
+    ctx.shadowBlur=12;
+    ctx.shadowColor="#fff06a";
+
+    ctx.beginPath();
+    ctx.arc(b.x,b.y,3,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.shadowBlur=0;
+  });
+
+  /* ZOMBIES */
+
+  zombies.forEach(z=>{
+
+    /* shadow */
+
+    ctx.fillStyle="rgba(0,0,0,.4)";
+    ctx.beginPath();
+    ctx.ellipse(z.x,z.y+15,z.r,6,0,0,Math.PI*2);
+    ctx.fill();
+
+    /* body */
+
+    ctx.fillStyle="#547b50";
+
+    ctx.beginPath();
+    ctx.arc(z.x,z.y,z.r,0,Math.PI*2);
+    ctx.fill();
+
+    /* head */
+
+    ctx.fillStyle="#71966b";
+
+    ctx.beginPath();
+    ctx.arc(z.x,z.y-5,z.r*.75,0,Math.PI*2);
+    ctx.fill();
+
+    /* eyes */
+
+    ctx.fillStyle="#ff3030";
+
+    ctx.beginPath();
+    ctx.arc(z.x-5,z.y-7,2.5,0,Math.PI*2);
+    ctx.arc(z.x+5,z.y-7,2.5,0,Math.PI*2);
+    ctx.fill();
+
+    /* mouth */
+
+    ctx.strokeStyle="#1a2519";
+    ctx.lineWidth=2;
+
+    ctx.beginPath();
+    ctx.moveTo(z.x-5,z.y+2);
+    ctx.lineTo(z.x+5,z.y+2);
+    ctx.stroke();
+  });
+
+  /* PLAYER */
+
+  let angle=Math.atan2(
+    mouse.y-player.y,
+    mouse.x-player.x
+  );
+
+  /* shadow */
+
+  ctx.fillStyle="rgba(0,0,0,.5)";
+  ctx.beginPath();
+  ctx.ellipse(player.x,player.y+17,20,7,0,0,Math.PI*2);
+  ctx.fill();
+
+  /* body */
+
+  ctx.save();
+
+  ctx.translate(player.x,player.y);
+  ctx.rotate(angle);
+
+  ctx.fillStyle="#4c8cff";
+
+  ctx.beginPath();
+  ctx.arc(0,0,player.r,0,Math.PI*2);
+  ctx.fill();
+
+  /* gun */
+
+  ctx.fillStyle="#222";
+  ctx.fillRect(5,-4,25,8);
+
+  ctx.fillStyle="#aaa";
+  ctx.fillRect(26,-3,7,6);
+
+  ctx.restore();
+
+  /* PARTICLES */
+
+  particles.forEach(p=>{
+
+    ctx.globalAlpha=Math.max(0,p.life/40);
+
+    ctx.fillStyle=p.color;
+
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,2.5,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  ctx.globalAlpha=1;
+
+  /* VIGNETTE */
+
+  let gradient=ctx.createRadialGradient(
+    W/2,H/2,100,
+    W/2,H/2,Math.max(W,H)*.75
+  );
+
+  gradient.addColorStop(0,"transparent");
+  gradient.addColorStop(1,"rgba(0,0,0,.65)");
+
+  ctx.fillStyle=gradient;
+  ctx.fillRect(0,0,W,H);
+}
+
+/* ---------------- GAME LOOP ---------------- */
+
+function loop(){
+
+  if(!running) return;
+
+  update();
+  draw();
+
+  requestAnimationFrame(loop);
+}
+
+/* ---------------- GAME OVER ---------------- */
+
+function endGame(){
+
+  running=false;
+
+  document.getElementById("finalScore").textContent=score;
+  document.getElementById("gameOver").style.display="flex";
+}
+
 </script>
 
 </body>
